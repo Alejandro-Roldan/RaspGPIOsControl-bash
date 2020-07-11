@@ -1,0 +1,42 @@
+#!/bin/bash
+
+############################################################################################################
+#
+#  RASPBERRY PI GPIO TO HIGH CONTROL THROUGH THE TERMINAL
+#
+#    This script takes the pin numbers to change as arguments
+#    Exports the gpios, sets them to output and sets them to high
+#
+############################################################################################################
+
+# THERES A BUG WITH THE RASPBERRY WHERE YOU NEED TO BE LOGGED AS ROOT TO BE ABLE TO CHANGE THE PINS STATES
+# WHICH IN TURN MEANS THAT WE NEED TO USE "sudo -i <<EOF"
+# THAT MAKES THE VARIABLE EXPANSION ACT IN SOME UNEXPECTED WAYS AND INCONVENIENT WORKAROUNDS HAD TO ME MADE
+
+
+# Loop through the arguments
+for pin; do
+
+	# Need to run this as root user. Using sudo won't work
+	sudo -i <<-EOF	# need to do -EOF instead of EOF to be able to use indentation
+
+	# Check if the pin has already been exported and export it otherwise
+	# Using a trailing slash on the path makes sure that we are checking for a directory
+	if [[ ! -d "/sys/class/gpio/gpio$pin/" ]]; then
+		echo $pin > /sys/class/gpio/export
+	fi
+
+	# Set the pin as OUTPUT
+	echo out > "/sys/class/gpio/gpio$pin/direction"
+
+	# Set the pin HIGH
+	echo 1 > "/sys/class/gpio/gpio$pin/value"
+
+	# Info message
+	echo "Set pin $pin HIGH"
+
+	# Close EOF
+	EOF
+
+done
+

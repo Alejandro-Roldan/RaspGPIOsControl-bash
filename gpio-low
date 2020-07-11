@@ -1,0 +1,40 @@
+#!/bin/bash
+
+############################################################################################################
+#
+#  RASPBERRY PI GPIO TO LOW CONTROL THROUGH THE TERMINAL
+#
+#    This script takes the pin numbers to change as arguments
+#    Sets them to low
+#
+############################################################################################################
+
+# THERES A BUG WITH THE RASPBERRY WHERE YOU NEED TO BE LOGGED AS ROOT TO BE ABLE TO CHANGE THE PINS STATES
+# WHICH IN TURN MEANS THAT WE NEED TO USE "sudo -i <<EOF"
+# THAT MAKES THE VARIABLE EXPANSION ACT IN SOME UNEXPECTED WAYS AND INCONVENIENT WORKAROUNDS HAD TO ME MADE
+
+
+# Loop through the arguments
+for pin; do
+
+	# Need to run this as root user. Using sudo won't work
+	sudo -i <<-EOF	# need to do -EOF instead of EOF to be able to use indentation
+
+	# Check if the pin is exported, otherwise no need to do anything
+	# Using a trailing slash on the path makes sure that we are checking for a directory
+	if [[ -d "/sys/class/gpio/gpio$pin/" ]]; then
+		# Set the pin LOW
+		echo 0 > "/sys/class/gpio/gpio$pin/value"
+
+		# Would unexport the pin but then you can't export it and set it high again
+		# Probably a bug
+	fi
+
+	# Info message
+	echo "Set pin $pin LOW"
+
+	# Close EOF
+	EOF
+
+done
+
